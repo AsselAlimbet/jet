@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Джет Создателя — Образовательный Продукт</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --emerald: #0d2e2a;
+    --emerald-mid: #14453e;
+    --emerald-light: #1a5c52;
+    --gold: #c9a84c;
+    --gold-light: #e2c579;
+    --gold-pale: #f0dea0;
+    --cream: #f5f0e8;
+    --white: #ffffff;
+    --text-dim: rgba(245,240,232,0.5);
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Jost', sans-serif;
+    background: var(--emerald);
+    color: var(--cream);
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(201,168,76,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 90%, rgba(26,92,82,0.4) 0%, transparent 60%),
+      radial-gradient(ellipse 100% 100% at 50% 50%, var(--emerald) 0%, #081a17 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── DIAMOND GRID PATTERN ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(45deg, rgba(201,168,76,0.03) 1px, transparent 1px),
+      linear-gradient(-45deg, rgba(201,168,76,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── WRAPPER ── */
+  #app {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar-wrap {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(201,168,76,0.15);
+    z-index: 100;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-pale));
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 12px rgba(201,168,76,0.6);
+  }
+
+  /* ── STEP COUNTER ── */
+  .step-label {
+    position: fixed;
+    top: 18px; right: 24px;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    font-weight: 300;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+
+  /* ── CARD ── */
+  .card {
+    width: 100%;
+    max-width: 680px;
+    background: rgba(20,69,62,0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 2px;
+    padding: 52px 52px 44px;
+    animation: fadeUp 0.7s cubic-bezier(0.4,0,0.2,1) both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.6;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── LOGO / ICON ── */
+  .jet-icon {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .jet-diamond {
+    width: 32px; height: 32px;
+    position: relative;
+  }
+  .jet-diamond svg { width: 100%; height: 100%; }
+  .jet-wordmark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 300;
+  }
+
+  /* ── HEADLINE ── */
+  .screen-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 400;
+    margin-bottom: 14px;
+    opacity: 0.85;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 300;
+    line-height: 1.2;
+    color: var(--cream);
+    margin-bottom: 16px;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+  .screen-desc {
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--text-dim);
+    margin-bottom: 40px;
+  }
+
+  /* ── QUESTION HEADER ── */
+  .question-header {
+    margin-bottom: 28px;
+  }
+  .question-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(22px, 4vw, 32px);
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--cream);
+  }
+
+  /* ── OPTIONS ── */
+  .options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 36px;
+  }
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 20px;
+    border: 1px solid rgba(201,168,76,0.18);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: rgba(13,46,42,0.4);
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .option::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(201,168,76,0.08), transparent);
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .option:hover { border-color: rgba(201,168,76,0.45); }
+  .option:hover::before { opacity: 1; }
+  .option.selected {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.1);
+  }
+  .option.selected::before { opacity: 1; }
+
+  .option-marker {
+    width: 18px; height: 18px;
+    border: 1px solid rgba(201,168,76,0.5);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+    position: relative;
+    transition: all 0.2s;
+  }
+  .option-marker::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--gold);
+    opacity: 0;
+    transform: scale(0.4);
+    transition: all 0.2s;
+  }
+  .option.selected .option-marker {
+    border-color: var(--gold);
+  }
+  .option.selected .option-marker::after {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* checkbox style for multi-select */
+  .option.multi .option-marker {
+    border-radius: 2px;
+  }
+  .option.multi .option-marker::after {
+    border-radius: 1px;
+    background: var(--gold);
+    content: '✓';
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+    color: var(--emerald);
+    inset: 2px;
+    font-weight: 700;
+  }
+
+  .option-text {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.5;
+    color: var(--cream);
+  }
+
+  /* ── CUSTOM INPUT ── */
+  .custom-input-wrap {
+    margin-top: 8px;
+    display: none;
+  }
+  .custom-input-wrap.visible { display: block; }
+  .custom-input {
+    width: 100%;
+    background: rgba(13,46,42,0.6);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 2px;
+    padding: 12px 16px;
+    color: var(--cream);
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .custom-input::placeholder { color: var(--text-dim); }
+  .custom-input:focus { border-color: var(--gold); }
+
+  /* ── CHECKLIST (screen 4) ── */
+  .checklist { display: flex; flex-direction: column; gap: 12px; margin-bottom: 36px; }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .check-box {
+    width: 22px; height: 22px;
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 2px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    font-size: 12px;
+    color: var(--emerald);
+  }
+  .check-item.checked .check-box {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+  .check-item.checked .check-box::after { content: '✓'; }
+  .check-label {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--cream);
+  }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 36px;
+    background: linear-gradient(135deg, var(--gold), #b8922e);
+    color: var(--emerald);
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 24px rgba(201,168,76,0.25);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(201,168,76,0.4);
+  }
+  .btn-primary:hover::before { opacity: 1; }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: transparent;
+    color: var(--gold);
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 1px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .btn-secondary:hover {
+    background: rgba(201,168,76,0.08);
+    border-color: var(--gold);
+  }
+
+  .btn-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  /* ── RESULT SCREEN ── */
+  .result-map {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  .result-block {
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+  }
+  .result-block:nth-child(1) { animation-delay: 0.05s; }
+  .result-block:nth-child(2) { animation-delay: 0.15s; }
+  .result-block:nth-child(3) { animation-delay: 0.25s; }
+  .result-block:nth-child(4) { animation-delay: 0.35s; }
+
+  .result-label {
+    padding: 10px 18px;
+    background: rgba(201,168,76,0.1);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 400;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+  }
+  .result-value {
+    padding: 14px 18px;
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.6;
+    color: var(--cream);
+  }
+  .result-tags { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 18px; }
+  .tag {
+    padding: 5px 12px;
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--gold-light);
+    font-weight: 300;
+  }
+
+  /* ── TYPE BADGE ── */
+  .type-badge-wrap {
+    text-align: center;
+    padding: 32px 0 8px;
+  }
+  .type-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  .type-badge {
+    display: inline-block;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05));
+    border: 1px solid var(--gold);
+    border-radius: 2px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--gold-light);
+    letter-spacing: 0.05em;
+    box-shadow: 0 0 32px rgba(201,168,76,0.15) inset;
+  }
+
+  /* ── SYSTEMICITY SCORE ── */
+  .score-row {
+    display: flex;
+    gap: 10px;
+    padding: 14px 18px;
+  }
+  .score-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.4);
+    transition: all 0.3s;
+  }
+  .score-dot.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    box-shadow: 0 0 8px rgba(201,168,76,0.5);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.2), transparent);
+    margin: 32px 0;
+  }
+
+  /* ── DECORATION ── */
+  .deco-line {
+    width: 40px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    margin-bottom: 24px;
+  }
+
+  /* ── WELCOME SCREEN ── */
+  .welcome-steps {
+    display: flex;
+    gap: 24px;
+    margin: 32px 0 40px;
+    flex-wrap: wrap;
+  }
+  .w-step {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .w-step-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-style: italic;
+    color: rgba(201,168,76,0.3);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .w-step-text {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    padding-top: 6px;
+    font-weight: 300;
+  }
+
+  /* ── FOOTER ── */
+  .footer-brand {
+    margin-top: 28px;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: rgba(201,168,76,0.3);
+    text-transform: uppercase;
+    font-weight: 300;
+  }
+
+  /* ── TRANSITIONS ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 600px) {
+    .card { padding: 36px 24px 32px; }
+    .welcome-steps { flex-direction: column; gap: 16px; }
+    h1 { font-size: 28px; }
+  }
+
+  /* ── PRINT / SAVE ── */
+  @media print {
+    body::before, body::after { display: none; }
+    .card { background: white; color: black; border: 1px solid #ccc; }
+    .btn-primary, .btn-secondary, .step-label, .progress-bar-wrap { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar-wrap">
+  <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+</div>
+<div class="step-label" id="stepLabel"></div>
+
+<div id="app">
+  <div class="card">
+
+    <!-- ═══ SCREEN 0: WELCOME ═══ -->
+    <div class="screen active" id="screen-0">
+      <div class="jet-icon">
+        <div class="jet-diamond">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="16,2 28,10 28,22 16,30 4,22 4,10" stroke="#c9a84c" stroke-width="0.8" fill="rgba(201,168,76,0.06)"/>
+            <polygon points="16,2 22,10 16,14 10,10" fill="rgba(201,168,76,0.3)"/>
+            <polygon points="10,10 16,14 16,28 4,22" fill="rgba(201,168,76,0.12)"/>
+            <polygon points="22,10 28,22 16,28 16,14" fill="rgba(201,168,76,0.18)"/>
+            <line x1="16" y1="2" x2="16" y2="30" stroke="#c9a84c" stroke-width="0.4" opacity="0.4"/>
+            <line x1="4" y1="10" x2="28" y2="10" stroke="#c9a84c" stroke-width="0.4" opacity="0.4"/>
+          </svg>
+        </div>
+        <span class="jet-wordmark">Джет Создателя</span>
+      </div>
+
+      <div class="deco-line"></div>
+
+      <p class="screen-eyebrow">Инструмент проектирования</p>
+      <h1>Образовательный<br><em>продукт — это система</em></h1>
+      <p class="screen-desc">Перед тем как создать образовательный продукт, важно определить маршрут обучения. Этот инструмент поведёт вас через четыре ключевых этапа проектирования.</p>
+
+      <div class="welcome-steps">
+        <div class="w-step">
+          <span class="w-step-num">1</span>
+          <span class="w-step-text">Проблема, которую решает продукт</span>
+        </div>
+        <div class="w-step">
+          <span class="w-step-num">2</span>
+          <span class="w-step-text">Образовательный результат ученика</span>
+        </div>
+        <div class="w-step">
+          <span class="w-step-num">3</span>
+          <span class="w-step-text">Форматы и методы обучения</span>
+        </div>
+        <div class="w-step">
+          <span class="w-step-num">4</span>
+          <span class="w-step-text">Системность проектирования</span>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="goTo(1)">
+        Начать путешествие
+        <span>→</span>
+      </button>
+    </div>
+
+    <!-- ═══ SCREEN 1: ПРОБЛЕМА ═══ -->
+    <div class="screen" id="screen-1">
+      <div class="jet-icon">
+        <div class="jet-diamond">
+          <svg viewBox="0 0 32 32" fill="none"><polygon points="16,2 28,10 28,22 16,30 4,22 4,10" stroke="#c9a84c" stroke-width="0.8" fill="rgba(201,168,76,0.06)"/><polygon points="16,2 22,10 16,14 10,10" fill="rgba(201,168,76,0.3)"/><polygon points="10,10 16,14 16,28 4,22" fill="rgba(201,168,76,0.12)"/><polygon points="22,10 28,22 16,28 16,14" fill="rgba(201,168,76,0.18)"/></svg>
+        </div>
+        <span class="jet-wordmark">Этап 01 — Проблема</span>
+      </div>
+
+      <div class="question-header">
+        <h2>Какую проблему решает ваш продукт?</h2>
+      </div>
+
+      <div class="options-grid" id="opts-1">
+        <div class="option" data-val="Отсутствие навыка" onclick="selectSingle(this, 1)">
+          <div class="option-marker"></div>
+          <span class="option-text">Отсутствие навыка</span>
+        </div>
+        <div class="option" data-val="Отсутствие системы действий" onclick="selectSingle(this, 1)">
+          <div class="option-marker"></div>
+          <span class="option-text">Отсутствие системы действий</span>
+        </div>
+        <div class="option" data-val="Ограничивающее мышление" onclick="selectSingle(this, 1)">
+          <div class="option-marker"></div>
+          <span class="option-text">Ограничивающее мышление</span>
+        </div>
+        <div class="option" data-val="Эмоциональное состояние" onclick="selectSingle(this, 1)">
+          <div class="option-marker"></div>
+          <span class="option-text">Эмоциональное состояние</span>
+        </div>
+        <div class="option" data-val="Трансформация жизни" onclick="selectSingle(this, 1)">
+          <div class="option-marker"></div>
+          <span class="option-text">Трансформация жизни</span>
+        </div>
+        <div class="option" data-val="custom" onclick="selectSingle(this, 1); toggleCustom('custom-1')">
+          <div class="option-marker"></div>
+          <span class="option-text">Другое</span>
+        </div>
+      </div>
+      <div class="custom-input-wrap" id="custom-1">
+        <input class="custom-input" id="custom-input-1" type="text" placeholder="Опишите проблему своими словами...">
+      </div>
+
+      <div class="divider"></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="nextScreen(1)">Далее →</button>
+        <button class="btn-secondary" onclick="goTo(0)">← Назад</button>
+      </div>
+    </div>
+
+    <!-- ═══ SCREEN 2: РЕЗУЛЬТАТ ═══ -->
+    <div class="screen" id="screen-2">
+      <div class="jet-icon">
+        <div class="jet-diamond">
+          <svg viewBox="0 0 32 32" fill="none"><polygon points="16,2 28,10 28,22 16,30 4,22 4,10" stroke="#c9a84c" stroke-width="0.8" fill="rgba(201,168,76,0.06)"/><polygon points="16,2 22,10 16,14 10,10" fill="rgba(201,168,76,0.3)"/><polygon points="10,10 16,14 16,28 4,22" fill="rgba(201,168,76,0.12)"/><polygon points="22,10 28,22 16,28 16,14" fill="rgba(201,168,76,0.18)"/></svg>
+        </div>
+        <span class="jet-wordmark">Этап 02 — Результат</span>
+      </div>
+
+      <div class="question-header">
+        <h2>Какой результат должен получить ученик?</h2>
+      </div>
+
+      <div class="options-grid" id="opts-2">
+        <div class="option" data-val="Освоить конкретный навык" onclick="selectSingle(this, 2)">
+          <div class="option-marker"></div>
+          <span class="option-text">Освоить конкретный навык</span>
+        </div>
+        <div class="option" data-val="Изменить мышление" onclick="selectSingle(this, 2)">
+          <div class="option-marker"></div>
+          <span class="option-text">Изменить мышление</span>
+        </div>
+        <div class="option" data-val="Сформировать новую систему действий" onclick="selectSingle(this, 2)">
+          <div class="option-marker"></div>
+          <span class="option-text">Сформировать новую систему действий</span>
+        </div>
+        <div class="option" data-val="Получить трансформацию состояния" onclick="selectSingle(this, 2)">
+          <div class="option-marker"></div>
+          <span class="option-text">Получить трансформацию состояния</span>
+        </div>
+        <div class="option" data-val="Получить комплексные изменения" onclick="selectSingle(this, 2)">
+          <div class="option-marker"></div>
+          <span class="option-text">Получить комплексные изменения</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="nextScreen(2)">Далее →</button>
+        <button class="btn-secondary" onclick="goTo(1)">← Назад</button>
+      </div>
+    </div>
+
+    <!-- ═══ SCREEN 3: ФОРМАТ ═══ -->
+    <div class="screen" id="screen-3">
+      <div class="jet-icon">
+        <div class="jet-diamond">
+          <svg viewBox="0 0 32 32" fill="none"><polygon points="16,2 28,10 28,22 16,30 4,22 4,10" stroke="#c9a84c" stroke-width="0.8" fill="rgba(201,168,76,0.06)"/><polygon points="16,2 22,10 16,14 10,10" fill="rgba(201,168,76,0.3)"/><polygon points="10,10 16,14 16,28 4,22" fill="rgba(201,168,76,0.12)"/><polygon points="22,10 28,22 16,28 16,14" fill="rgba(201,168,76,0.18)"/></svg>
+        </div>
+        <span class="jet-wordmark">Этап 03 — Форматы</span>
+      </div>
+
+      <div class="question-header">
+        <h2>Какие форматы обучения будут использоваться?</h2>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:8px;font-weight:300;">Можно выбрать несколько</p>
+      </div>
+
+      <div class="options-grid" id="opts-3">
+        <div class="option multi" data-val="Практические задания" onclick="selectMulti(this)">
+          <div class="option-marker"></div>
+          <span class="option-text">Практические задания</span>
+        </div>
+        <div class="option multi" data-val="Кейсы" onclick="selectMulti(this)">
+          <div class="option-marker"></div>
+          <span class="option-text">Кейсы</span>
+        </div>
+        <div class="option multi" data-val="Симуляции" onclick="selectMulti(this)">
+          <div class="option-marker"></div>
+          <span class="option-text">Симуляции</span>
+        </div>
+        <div class="option multi" data-val="Игры" onclick="selectMulti(this)">
+          <div class="option-marker"></div>
+          <span class="option-text">Игры и геймификация</span>
+        </div>
+        <div class="option multi" data-val="Разборы" onclick="selectMulti(this)">
+          <div class="option-marker"></div>
+          <span class="option-text">Разборы</span>
+        </div>
+        <div class="option multi" data-val="Рефлексия" onclick="selectMulti(this)">
+          <div class="option-marker"></div>
+          <span class="option-text">Рефлексия</span>
+        </div>
+        <div class="option multi" data-val="Групповая работа" onclick="selectMulti(this)">
+          <div class="option-marker"></div>
+          <span class="option-text">Групповая работа</span>
+        </div>
+        <div class="option multi" data-val="Индивидуальная работа" onclick="selectMulti(this)">
+          <div class="option-marker"></div>
+          <span class="option-text">Индивидуальная работа</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="nextScreen(3)">Далее →</button>
+        <button class="btn-secondary" onclick="goTo(2)">← Назад</button>
+      </div>
+    </div>
+
+    <!-- ═══ SCREEN 4: СИСТЕМНОСТЬ ═══ -->
+    <div class="screen" id="screen-4">
+      <div class="jet-icon">
+        <div class="jet-diamond">
+          <svg viewBox="0 0 32 32" fill="none"><polygon points="16,2 28,10 28,22 16,30 4,22 4,10" stroke="#c9a84c" stroke-width="0.8" fill="rgba(201,168,76,0.06)"/><polygon points="16,2 22,10 16,14 10,10" fill="rgba(201,168,76,0.3)"/><polygon points="10,10 16,14 16,28 4,22" fill="rgba(201,168,76,0.12)"/><polygon points="22,10 28,22 16,28 16,14" fill="rgba(201,168,76,0.18)"/></svg>
+        </div>
+        <span class="jet-wordmark">Этап 04 — Системность</span>
+      </div>
+
+      <div class="question-header">
+        <h2>Насколько системно вы проектируете продукт?</h2>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:8px;font-weight:300;">Отметьте всё, что уже есть в вашем продукте</p>
+      </div>
+
+      <div class="checklist" id="checklist-4">
+        <label class="check-item" onclick="toggleCheck(this, 'Чёткий результат')">
+          <div class="check-box"></div>
+          <span class="check-label">Чёткий образовательный результат</span>
+        </label>
+        <label class="check-item" onclick="toggleCheck(this, 'Структура обучения')">
+          <div class="check-box"></div>
+          <span class="check-label">Структура обучения (модули, блоки)</span>
+        </label>
+        <label class="check-item" onclick="toggleCheck(this, 'Система практики')">
+          <div class="check-box"></div>
+          <span class="check-label">Система практики и заданий</span>
+        </label>
+        <label class="check-item" onclick="toggleCheck(this, 'Система проверки')">
+          <div class="check-box"></div>
+          <span class="check-label">Система проверки и обратной связи</span>
+        </label>
+      </div>
+
+      <div class="divider"></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="showResult()">Получить результат ✦</button>
+        <button class="btn-secondary" onclick="goTo(3)">← Назад</button>
+      </div>
+    </div>
+
+    <!-- ═══ SCREEN 5: РЕЗУЛЬТАТ ═══ -->
+    <div class="screen" id="screen-5">
+      <div class="jet-icon">
+        <div class="jet-diamond">
+          <svg viewBox="0 0 32 32" fill="none"><polygon points="16,2 28,10 28,22 16,30 4,22 4,10" stroke="#c9a84c" stroke-width="0.8" fill="rgba(201,168,76,0.06)"/><polygon points="16,2 22,10 16,14 10,10" fill="rgba(201,168,76,0.3)"/><polygon points="10,10 16,14 16,28 4,22" fill="rgba(201,168,76,0.12)"/><polygon points="22,10 28,22 16,28 16,14" fill="rgba(201,168,76,0.18)"/></svg>
+        </div>
+        <span class="jet-wordmark">Маршрут продукта</span>
+      </div>
+
+      <p class="screen-eyebrow">Ваша карта образовательного продукта</p>
+      <h1 style="font-size:28px;margin-bottom:24px;">Маршрут готов<em>.</em></h1>
+
+      <div class="result-map" id="result-map">
+        <!-- filled by JS -->
+      </div>
+
+      <div class="type-badge-wrap" id="type-badge-wrap">
+        <div class="type-eyebrow">Тип вашего продукта</div>
+        <div class="type-badge" id="type-badge"></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="saveResult()">Сохранить результат</button>
+        <button class="btn-secondary" onclick="restart()">↺ Начать заново</button>
+      </div>
+    </div>
+
+  </div>
+  <div class="footer-brand">Джет Создателя · Бренд-Отель ✦</div>
+</div>
+
+<script>
+  const state = {
+    answers: { 1: null, 2: null, 3: [], 4: [] },
+    customText: ''
+  };
+
+  function goTo(n) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + n).classList.add('active');
+    updateProgress(n);
+    window.scrollTo(0, 0);
+  }
+
+  function updateProgress(n) {
+    const pct = n === 0 ? 0 : n === 5 ? 100 : (n / 4) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    const lbl = document.getElementById('stepLabel');
+    if (n === 0 || n === 5) { lbl.textContent = ''; }
+    else { lbl.textContent = 'Этап ' + n + ' / 4'; }
+  }
+
+  function selectSingle(el, screen) {
+    document.querySelectorAll('#opts-' + screen + ' .option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    const val = el.dataset.val === 'custom' ? 'custom' : el.dataset.val;
+    state.answers[screen] = val;
+  }
+
+  function toggleCustom(id) {
+    const wrap = document.getElementById(id);
+    wrap.classList.toggle('visible');
+  }
+
+  function selectMulti(el) {
+    el.classList.toggle('selected');
+    const val = el.dataset.val;
+    const arr = state.answers[3];
+    if (el.classList.contains('selected')) {
+      if (!arr.includes(val)) arr.push(val);
+    } else {
+      const i = arr.indexOf(val);
+      if (i > -1) arr.splice(i, 1);
+    }
+  }
+
+  function toggleCheck(el, val) {
+    el.classList.toggle('checked');
+    const arr = state.answers[4];
+    if (el.classList.contains('checked')) {
+      if (!arr.includes(val)) arr.push(val);
+    } else {
+      const i = arr.indexOf(val);
+      if (i > -1) arr.splice(i, 1);
+    }
+  }
+
+  function nextScreen(current) {
+    // screen 1: single required
+    if (current === 1) {
+      let val = state.answers[1];
+      if (!val) { alert('Пожалуйста, выберите вариант'); return; }
+      if (val === 'custom') {
+        const txt = document.getElementById('custom-input-1').value.trim();
+        if (!txt) { alert('Пожалуйста, опишите проблему'); return; }
+        state.customText = txt;
+        state.answers[1] = txt;
+      }
+    }
+    if (current === 2 && !state.answers[2]) {
+      alert('Пожалуйста, выберите вариант'); return;
+    }
+    if (current === 3 && state.answers[3].length === 0) {
+      alert('Пожалуйста, выберите хотя бы один формат'); return;
+    }
+    goTo(current + 1);
+  }
+
+  function determineType() {
+    const result = state.answers[2];
+    const score = state.answers[4].length;
+    const formats = state.answers[3];
+    const hasPractice = formats.includes('Практические задания') || formats.includes('Симуляции') || formats.includes('Кейсы');
+
+    if (result === 'Получить комплексные изменения' || result === 'Получить трансформацию состояния') {
+      return 'Трансформационный продукт';
+    }
+    if (hasPractice && score >= 3) {
+      return 'Практикоориентированный продукт';
+    }
+    if (result === 'Изменить мышление' || result === 'Сформировать новую систему действий') {
+      return 'Условно мягкий продукт';
+    }
+    return 'Мягкий продукт';
+  }
+
+  function showResult() {
+    const map = document.getElementById('result-map');
+    const s = state.answers;
+    const score = s[4].length;
+
+    // Score dots
+    let dots = '';
+    for (let i = 0; i < 4; i++) {
+      dots += `<div class="score-dot ${i < score ? 'active' : ''}"></div>`;
+    }
+
+    const scoreLabel = score === 4 ? 'Высокая системность' : score >= 2 ? 'Средняя системность' : 'Начальный уровень системности';
+
+    map.innerHTML = `
+      <div class="result-block">
+        <div class="result-label">Проблема</div>
+        <div class="result-value">${s[1] || '—'}</div>
+      </div>
+      <div class="result-block">
+        <div class="result-label">Образовательный результат</div>
+        <div class="result-value">${s[2] || '—'}</div>
+      </div>
+      <div class="result-block">
+        <div class="result-label">Форматы обучения</div>
+        <div class="result-tags">${s[3].map(t => `<span class="tag">${t}</span>`).join('') || '<span class="result-value">—</span>'}</div>
+      </div>
+      <div class="result-block">
+        <div class="result-label">Системность — ${scoreLabel}</div>
+        <div class="score-row">${dots}</div>
+        ${s[4].length > 0 ? `<div class="result-tags">${s[4].map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
+      </div>
+    `;
+
+    document.getElementById('type-badge').textContent = determineType();
+    goTo(5);
+  }
+
+  function saveResult() {
+    window.print();
+  }
+
+  function restart() {
+    state.answers = { 1: null, 2: null, 3: [], 4: [] };
+    state.customText = '';
+    // reset UI
+    document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('.check-item').forEach(c => c.classList.remove('checked'));
+    document.querySelectorAll('.custom-input-wrap').forEach(w => w.classList.remove('visible'));
+    document.querySelectorAll('.custom-input').forEach(i => i.value = '');
+    goTo(0);
+  }
+
+  updateProgress(0);
+</script>
+</body>
+</html>
