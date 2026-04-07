@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JET — Навигатор Продуктолога</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1f1b;
+    --surface: #122820;
+    --surface2: #183329;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: rgba(201, 168, 76, 0.12);
+    --gold-border: rgba(201, 168, 76, 0.28);
+    --text: #e8e0d0;
+    --text-dim: rgba(232, 224, 208, 0.5);
+    --text-muted: rgba(232, 224, 208, 0.3);
+    --emerald: #1e3d33;
+    --emerald-light: #264d41;
+    --danger: #c0392b;
+    --warning: #c9843c;
+    --success: #4a8c6a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 60px 32px 100px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 64px;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 6px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(36px, 6vw, 56px);
+    font-weight: 300;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .header h1 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .header p {
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    line-height: 1.7;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* Progress */
+  .progress-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 48px;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+
+  .progress-step {
+    flex: 1;
+    height: 2px;
+    background: var(--gold-border);
+    transition: background 0.4s ease;
+    position: relative;
+  }
+
+  .progress-step.active { background: var(--gold); }
+  .progress-step.done { background: rgba(201, 168, 76, 0.6); }
+
+  /* Block */
+  .block {
+    display: none;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .block.visible { display: block; }
+
+  .block-header {
+    margin-bottom: 32px;
+  }
+
+  .block-num {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .block-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 300;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+
+  .block-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    letter-spacing: 0.3px;
+  }
+
+  /* Options */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--gold-border);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold-dim);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .option:hover::before { opacity: 1; }
+  .option:hover { border-color: var(--gold); }
+
+  .option.selected {
+    border-color: var(--gold);
+    background: var(--emerald);
+  }
+
+  .option.selected::before { opacity: 1; }
+
+  .option-marker {
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--gold-border);
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .option.selected .option-marker {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .option.selected .option-marker::after {
+    content: '✓';
+    font-size: 10px;
+    color: var(--bg);
+    font-weight: 600;
+  }
+
+  .option-content { flex: 1; }
+
+  .option-label {
+    font-size: 13px;
+    color: var(--text);
+    letter-spacing: 0.3px;
+    line-height: 1.5;
+  }
+
+  .option-hint {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  /* Insight box */
+  .insight {
+    display: none;
+    padding: 20px 24px;
+    background: var(--emerald);
+    border-left: 2px solid var(--gold);
+    margin-bottom: 28px;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .insight.visible { display: block; }
+
+  .insight-label {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .insight-text {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .insight-text strong {
+    color: var(--gold-light);
+    font-weight: 500;
+  }
+
+  /* Loading */
+  .loading-indicator {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 0;
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  .loading-indicator.visible { display: flex; }
+
+  .loading-dots {
+    display: flex;
+    gap: 4px;
+  }
+
+  .loading-dots span {
+    width: 4px;
+    height: 4px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: dot 1.2s infinite;
+  }
+
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  /* Navigation */
+  .nav {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .btn {
+    padding: 14px 32px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: none;
+    outline: none;
+  }
+
+  .btn-primary {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  .btn-primary:hover { background: var(--gold-light); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--gold-border);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--gold);
+    color: var(--text);
+  }
+
+  /* Result */
+  .result {
+    display: none;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .result.visible { display: block; }
+
+  .result-header {
+    text-align: center;
+    margin-bottom: 48px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--gold-border);
+  }
+
+  .result-label {
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .result-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 300;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .result-type {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(20px, 3vw, 28px);
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .result-section {
+    margin-bottom: 36px;
+  }
+
+  .result-section-title {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--gold-border);
+  }
+
+  .result-content {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.8;
+  }
+
+  .result-content strong { color: var(--gold-light); font-weight: 500; }
+
+  .gap-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+  }
+
+  .gap-severity {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  .gap-severity.critical { background: var(--danger); }
+  .gap-severity.medium { background: var(--warning); }
+  .gap-severity.low { background: var(--success); }
+
+  .gap-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+  .gap-text small { display: block; color: var(--text-dim); font-size: 11px; margin-top: 3px; }
+
+  .route-step {
+    display: flex;
+    gap: 20px;
+    padding: 16px 0;
+    align-items: flex-start;
+  }
+
+  .route-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    color: var(--gold);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 28px;
+  }
+
+  .route-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+  .route-text strong { color: var(--gold-light); font-weight: 500; }
+
+  .loading-result {
+    text-align: center;
+    padding: 80px 0;
+  }
+
+  .loading-result-icon {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    color: var(--gold);
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+  }
+
+  .loading-result-text {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* Separator */
+  .sep {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 40px 0;
+    color: var(--gold-border);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .sep::before, .sep::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gold-border);
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes dot {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--gold-border);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+  }
+
+  .footer span { color: var(--gold); }
+
+  /* Multi select note */
+  .multi-note {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  /* Custom input */
+  .custom-input-wrap {
+    margin-top: 16px;
+    margin-bottom: 28px;
+  }
+
+  .custom-input-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .custom-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--gold-border);
+    color: var(--text);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    padding: 14px 16px;
+    resize: none;
+    outline: none;
+    line-height: 1.6;
+    transition: border-color 0.2s ease;
+  }
+
+  .custom-input::placeholder { color: var(--text-muted); }
+  .custom-input:focus { border-color: var(--gold); }
+
+  @media (max-width: 600px) {
+    .app { padding: 40px 20px 80px; }
+    .btn { padding: 12px 24px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="logo">JET ✦ Навигатор Продуктолога</div>
+    <h1>Образовательный продукт<br>— это <em>система</em></h1>
+    <p>Семь блоков анализа. Живая диагностика. Маршрут действий.<br>Инструмент для тех, кто проектирует осознанно.</p>
+  </div>
+
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- BLOCKS -->
+  <div id="blocks"></div>
+
+  <!-- RESULT -->
+  <div class="result" id="result">
+    <div class="loading-result" id="loadingResult">
+      <div class="loading-result-icon">◈</div>
+      <div class="loading-result-text">Анализирую систему</div>
+    </div>
+    <div id="resultContent" style="display:none"></div>
+  </div>
+
+  <div class="footer">JET ✦ <span>Бренд-Отель</span> · Нейропродуктология</div>
+</div>
+
+<script>
+const BLOCKS = [
+  {
+    id: 'problem',
+    num: '01 / 07',
+    title: 'Проблема ученика',
+    subtitle: 'Что именно не получается у человека до вашего продукта? Точная формулировка проблемы определяет всю архитектуру обучения.',
+    multi: false,
+    options: [
+      { value: 'skill', label: 'Нет конкретного навыка', hint: 'Не умеет делать что-то конкретное — писать, продавать, считать, говорить' },
+      { value: 'system', label: 'Нет системы действий', hint: 'Знает что делать, но не может выстроить последовательность и удерживать её' },
+      { value: 'mindset', label: 'Ограничивающее мышление', hint: 'Убеждения, страхи, установки мешают действовать — знания есть, движения нет' },
+      { value: 'state', label: 'Эмоциональное состояние', hint: 'Выгорание, тревога, отсутствие ресурса — проблема не в знаниях, а в энергии' },
+      { value: 'identity', label: 'Не видит себя в новой роли', hint: 'Человек не идентифицирует себя с тем, кем хочет стать' },
+    ]
+  },
+  {
+    id: 'result',
+    num: '02 / 07',
+    title: 'Измеримый результат',
+    subtitle: 'Как вы поймёте, что ученик дошёл? Результат должен быть виден — вам и ему.',
+    multi: false,
+    options: [
+      { value: 'artifact', label: 'Создаст конкретный продукт / артефакт', hint: 'Текст, стратегия, сайт, портфолио — что-то, что можно показать' },
+      { value: 'behavior', label: 'Изменит поведение в конкретных ситуациях', hint: 'Начнёт делать то, чего не делал — звонить, выступать, писать ежедневно' },
+      { value: 'decision', label: 'Примет ключевое решение / сделает выбор', hint: 'Уволится, запустит проект, выберет нишу — один важный шаг' },
+      { value: 'feeling', label: 'Изменится его внутреннее состояние', hint: 'Почувствует уверенность, спокойствие, ясность — субъективный сдвиг' },
+      { value: 'unclear', label: 'Пока не могу сформулировать точно', hint: 'Есть ощущение результата, но в слова не ложится' },
+    ]
+  },
+  {
+    id: 'audience',
+    num: '03 / 07',
+    title: 'Аудитория',
+    subtitle: 'Кто ваш ученик? Контекст аудитории влияет на форматы, темп и глубину продукта.',
+    multi: false,
+    options: [
+      { value: 'beginner', label: 'Новичок в теме', hint: 'Входит в область впервые, нужна структура и много поддержки' },
+      { value: 'practitioner', label: 'Практик с опытом', hint: 'Уже работает, хочет систематизировать или усилить конкретный аспект' },
+      { value: 'expert', label: 'Эксперт, меняющий уровень', hint: 'Переходит от исполнителя к стратегу, от специалиста к лидеру' },
+      { value: 'career_change', label: 'Человек в точке перехода', hint: 'Меняет профессию, нишу, направление — нужна опора и новая карта' },
+      { value: 'leader', label: 'Руководитель / предприниматель', hint: 'Управляет людьми или бизнесом, думает системами, ограничен временем' },
+      { value: 'mixed', label: 'Смешанная аудитория', hint: 'Разный уровень подготовки в одной группе' },
+    ]
+  },
+  {
+    id: 'architecture',
+    num: '04 / 07',
+    title: 'Архитектура обучения',
+    subtitle: 'Какие форматы используются? Выберите все, что есть в продукте.',
+    multi: true,
+    options: [
+      { value: 'theory', label: 'Видео / лекции / теоретические блоки', hint: '' },
+      { value: 'practice', label: 'Практические задания', hint: '' },
+      { value: 'cases', label: 'Разборы кейсов', hint: '' },
+      { value: 'reflection', label: 'Рефлексия и самоанализ', hint: '' },
+      { value: 'group', label: 'Групповая работа / сообщество', hint: '' },
+      { value: 'individual', label: 'Индивидуальная обратная связь', hint: '' },
+      { value: 'gamification', label: 'Геймификация / прогресс-механики', hint: '' },
+      { value: 'simulation', label: 'Симуляции / ролевые ситуации', hint: '' },
+    ]
+  },
+  {
+    id: 'platform',
+    num: '05 / 07',
+    title: 'Платформа и технологии',
+    subtitle: 'Где и как реализуется продукт? Технические решения либо поддерживают методологию, либо ограничивают её.',
+    multi: false,
+    options: [
+      { value: 'lms', label: 'LMS-платформа (Getcourse, Teachbase и др.)', hint: 'Курсовая структура, уроки, тесты, автоматизация' },
+      { value: 'telegram', label: 'Telegram / мессенджеры', hint: 'Боты, каналы, чаты — высокая доступность, ограниченный функционал' },
+      { value: 'live', label: 'Live-формат (Zoom, Meet)', hint: 'Вебинары, живые встречи — высокое присутствие, сложная масштабируемость' },
+      { value: 'hybrid', label: 'Гибрид нескольких платформ', hint: 'LMS + Telegram + Zoom — максимальная гибкость, высокая сложность управления' },
+      { value: 'offline', label: 'Офлайн / очный формат', hint: 'Тренинги, мастермайнды, живые встречи' },
+      { value: 'undefined', label: 'Ещё не определено', hint: '' },
+    ]
+  },
+  {
+    id: 'team',
+    num: '06 / 07',
+    title: 'Команда реализации',
+    subtitle: 'Кто реализует продукт? Честная оценка ресурса команды — часть системного проектирования.',
+    multi: false,
+    options: [
+      { value: 'solo', label: 'Я один(а) — делаю всё сам(а)', hint: 'Эксперт, методолог, продюсер и куратор в одном лице' },
+      { value: 'expert_plus', label: 'Эксперт + 1-2 помощника', hint: 'Есть поддержка, но ключевые решения принимаю я' },
+      { value: 'team', label: 'Команда с распределёнными ролями', hint: 'Методолог, куратор, технический специалист, маркетинг — отдельные люди' },
+      { value: 'outsource', label: 'Делегирование на подрядчиков', hint: 'Основная реализация на аутсорсе, я как продюсер / постановщик задач' },
+    ]
+  },
+  {
+    id: 'systemcheck',
+    num: '07 / 07',
+    title: 'Системность продукта',
+    subtitle: 'Отметьте всё, что уже реализовано в вашем продукте. Это покажет, где реальные пробелы.',
+    multi: true,
+    options: [
+      { value: 'result_defined', label: 'Образовательный результат сформулирован и измерим', hint: '' },
+      { value: 'structure', label: 'Структура обучения выстроена (модули, логика прогрессии)', hint: '' },
+      { value: 'practice_system', label: 'Система практики — задания соответствуют типу трансформации', hint: '' },
+      { value: 'feedback', label: 'Система обратной связи и проверки заданий', hint: '' },
+      { value: 'support', label: 'Поддержка ученика в процессе (кураторы, сообщество, точки контакта)', hint: '' },
+      { value: 'metrics', label: 'Метрики успеха — как вы измеряете эффективность продукта', hint: '' },
+      { value: 'completion', label: 'Логика завершения — как ученик понимает, что дошёл до конца', hint: '' },
+    ]
+  }
+];
+
+let current = 0;
+let answers = {};
+let insightShown = {};
+
+function init() {
+  buildProgressBar();
+  buildBlocks();
+  showBlock(0);
+}
+
+function buildProgressBar() {
+  const bar = document.getElementById('progressBar');
+  BLOCKS.forEach((_, i) => {
+    const step = document.createElement('div');
+    step.className = 'progress-step';
+    step.id = `step-${i}`;
+    bar.appendChild(step);
+  });
+}
+
+function updateProgress() {
+  BLOCKS.forEach((_, i) => {
+    const step = document.getElementById(`step-${i}`);
+    step.className = 'progress-step' + (i === current ? ' active' : i < current ? ' done' : '');
+  });
+}
+
+function buildBlocks() {
+  const container = document.getElementById('blocks');
+  BLOCKS.forEach((block, bi) => {
+    const div = document.createElement('div');
+    div.className = 'block';
+    div.id = `block-${bi}`;
+
+    let optionsHtml = block.multi
+      ? `<div class="multi-note">Можно выбрать несколько</div>`
+      : '';
+
+    optionsHtml += `<div class="options">`;
+    block.options.forEach((opt, oi) => {
+      optionsHtml += `
+        <div class="option" data-block="${bi}" data-opt="${oi}" data-value="${opt.value}" onclick="selectOption(${bi}, ${oi}, ${block.multi})">
+          <div class="option-marker"></div>
+          <div class="option-content">
+            <div class="option-label">${opt.label}</div>
+            ${opt.hint ? `<div class="option-hint">${opt.hint}</div>` : ''}
+          </div>
+        </div>`;
+    });
+    optionsHtml += '</div>';
+    optionsHtml += '<div class="custom-input-wrap">';
+    optionsHtml += '<div class="custom-input-label">Свой вариант</div>';
+    optionsHtml += '<textarea class="custom-input" id="custom-' + bi + '" placeholder="Опишите своими словами, если ни один вариант не подходит..." rows="2" oninput="onCustomInput(' + bi + ')"></textarea>';
+    optionsHtml += '</div>';
+
+    div.innerHTML =
+      '<div class="block-header">' +
+        '<div class="block-num">' + block.num + '</div>' +
+        '<div class="block-title">' + block.title + '</div>' +
+        '<div class="block-subtitle">' + block.subtitle + '</div>' +
+      '</div>' +
+      optionsHtml +
+      '<div class="insight" id="insight-' + bi + '">' +
+        '<div class="insight-label">◈ Анализ</div>' +
+        '<div class="insight-text" id="insight-text-' + bi + '"></div>' +
+      '</div>' +
+      '<div class="loading-indicator" id="loading-' + bi + '">' +
+        '<div class="loading-dots"><span></span><span></span><span></span></div>' +
+        '<span>Анализирую выбор...</span>' +
+      '</div>' +
+      '<div class="nav">' +
+        (bi > 0 ? '<button class="btn btn-secondary" onclick="prevBlock()">← Назад</button>' : '') +
+        '<button class="btn btn-primary" id="next-' + bi + '" onclick="nextBlock()" disabled>' +
+          (bi === BLOCKS.length - 1 ? 'Получить анализ ✦' : 'Далее →') +
+        '</button>' +
+      '</div>';
+
+    container.appendChild(div);
+  });
+}
+
+function showBlock(i) {
+  document.querySelectorAll('.block').forEach(b => b.classList.remove('visible'));
+  const block = document.getElementById(`block-${i}`);
+  if (block) block.classList.add('visible');
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function onCustomInput(bi) {
+  const block = BLOCKS[bi];
+  const val = document.getElementById('custom-' + bi).value.trim();
+  if (val) {
+    answers[block.id + '_custom'] = val;
+  } else {
+    delete answers[block.id + '_custom'];
+  }
+  const hasAnswer = !!(answers[block.id] || answers[block.id + '_custom']);
+  document.getElementById('next-' + bi).disabled = !hasAnswer;
+
+  if (hasAnswer && !insightShown[bi]) {
+    insightShown[bi] = true;
+    fetchInsight(bi);
+  }
+}
+
+function selectOption(bi, oi, multi) {
+  const block = BLOCKS[bi];
+  const opts = document.querySelectorAll(`[data-block="${bi}"]`);
+
+  if (!multi) {
+    opts.forEach(o => o.classList.remove('selected'));
+    answers[block.id] = block.options[oi].value;
+  } else {
+    const el = document.querySelector(`[data-block="${bi}"][data-opt="${oi}"]`);
+    el.classList.toggle('selected');
+    if (!answers[block.id]) answers[block.id] = [];
+    const val = block.options[oi].value;
+    if (el.classList.contains('selected')) {
+      if (!answers[block.id].includes(val)) answers[block.id].push(val);
+    } else {
+      answers[block.id] = answers[block.id].filter(v => v !== val);
+    }
+  }
+
+  if (!multi) {
+    document.querySelector(`[data-block="${bi}"][data-opt="${oi}"]`).classList.add('selected');
+  }
+
+  const hasAnswer = multi
+    ? (answers[block.id] && answers[block.id].length > 0) || !!answers[block.id + '_custom']
+    : !!answers[block.id] || !!answers[block.id + '_custom'];
+
+  document.getElementById(`next-${bi}`).disabled = !hasAnswer;
+
+  // Show insight after selection
+  if (hasAnswer && !insightShown[bi]) {
+    insightShown[bi] = true;
+    fetchInsight(bi);
+  }
+}
+
+async function fetchInsight(bi) {
+  const block = BLOCKS[bi];
+  const loadingEl = document.getElementById(`loading-${bi}`);
+  const insightEl = document.getElementById(`insight-${bi}`);
+  const insightText = document.getElementById(`insight-text-${bi}`);
+
+  loadingEl.classList.add('visible');
+
+  const selectedVals = Array.isArray(answers[block.id]) ? answers[block.id] : [answers[block.id]].filter(Boolean);
+  const selectedLabels = selectedVals.map(v => block.options.find(o => o.value === v)?.label).filter(Boolean);
+  const customText = answers[block.id + '_custom'];
+  if (customText) selectedLabels.push('Свой вариант: ' + customText);
+
+  const prompt = buildInsightPrompt(bi, block, selectedLabels, answers);
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `Ты — JET, инструмент когнитивной навигации для продуктологов в сфере образования. 
+Твоя задача — давать короткий, острый, профессиональный анализ выбора пользователя прямо в момент выбора.
+Отвечай на русском языке. Без вступлений типа "Отличный выбор" или "Спасибо". 
+Сразу по делу: что означает этот выбор для продукта, какой риск он несёт, на что обратить внимание.
+Используй HTML-теги <strong> для выделения ключевых мыслей.
+Максимум 3-4 предложения. Конкретно и профессионально.`,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.find(c => c.type === 'text')?.text || '';
+
+    loadingEl.classList.remove('visible');
+    insightText.innerHTML = text;
+    insightEl.classList.add('visible');
+  } catch (e) {
+    loadingEl.classList.remove('visible');
+  }
+}
+
+function buildInsightPrompt(bi, block, selectedLabels, answers) {
+  const context = Object.entries(answers).map(([k, v]) => {
+    const b = BLOCKS.find(bl => bl.id === k);
+    const vals = Array.isArray(v) ? v : [v];
+    const labels = vals.map(val => b?.options.find(o => o.value === val)?.label).filter(Boolean);
+    return `${b?.title}: ${labels.join(', ')}`;
+  }).join('\n');
+
+  return `Продуктолог проектирует образовательный продукт.
+
+Уже выбрано:
+${context}
+
+Текущий вопрос: "${block.title}"
+Выбор пользователя: ${selectedLabels.join(', ')}
+
+Дай короткий аналитический комментарий к этому выбору с учётом уже известного контекста.`;
+}
+
+function nextBlock() {
+  if (current < BLOCKS.length - 1) {
+    current++;
+    showBlock(current);
+  } else {
+    showResult();
+  }
+}
+
+function prevBlock() {
+  if (current > 0) {
+    current--;
+    showBlock(current);
+  }
+}
+
+async function showResult() {
+  document.querySelectorAll('.block').forEach(b => b.classList.remove('visible'));
+  const resultEl = document.getElementById('result');
+  resultEl.classList.add('visible');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Update all progress steps to done
+  BLOCKS.forEach((_, i) => {
+    const step = document.getElementById(`step-${i}`);
+    step.className = 'progress-step done';
+  });
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `Ты — JET, инструмент когнитивной навигации для продуктологов в сфере образования.
+Отвечай ТОЛЬКО валидным JSON без markdown-обёрток, без пояснений вне JSON.
+Язык: русский. Тон: профессиональный, прямой, без воды.
+Используй <strong> внутри строк для выделения ключевого.`,
+        messages: [{
+          role: 'user',
+          content: buildFinalPrompt()
+        }]
+      })
+    });
+
+    const data = await response.json();
+    let raw = data.content?.find(c => c.type === 'text')?.text || '{}';
+    raw = raw.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(raw);
+    renderResult(result);
+  } catch (e) {
+    renderFallback();
+  }
+}
+
+function buildFinalPrompt() {
+  const summary = BLOCKS.map(block => {
+    const val = answers[block.id];
+    const customVal = answers[block.id + '_custom'];
+    const parts = [];
+    if (val) {
+      const vals = Array.isArray(val) ? val : [val];
+      const labels = vals.map(v => block.options.find(o => o.value === v)?.label).filter(Boolean);
+      if (labels.length) parts.push(labels.join(', '));
+    }
+    if (customVal) parts.push('Свой вариант: ' + customVal);
+    if (!parts.length) return null;
+    return block.title + ': ' + parts.join(' + ');
+  }).filter(Boolean).join('\n');
+
+  return `Продуктолог завершил анализ своего образовательного продукта.
+
+Данные:
+${summary}
+
+Верни JSON строго в этом формате:
+{
+  "productType": "название типа продукта (2-4 слова, ёмко)",
+  "diagnosis": "общая характеристика продукта — 2-3 предложения, что это за продукт и в чём его суть",
+  "gaps": [
+    { "severity": "critical|medium|low", "text": "пробел или риск", "reason": "почему это важно" },
+    { "severity": "critical|medium|low", "text": "пробел или риск", "reason": "почему это важно" },
+    { "severity": "critical|medium|low", "text": "пробел или риск", "reason": "почему это важно" }
+  ],
+  "route": [
+    { "step": "первое действие", "why": "обоснование" },
+    { "step": "второе действие", "why": "обоснование" },
+    { "step": "третье действие", "why": "обоснование" }
+  ],
+  "keyInsight": "главный вывод — одна острая мысль, которую продуктолог должен унести с собой"
+}
+
+Будь конкретным. Пробелы основывай на реальных данных из анкеты, а не на абстрактных советах.`;
+}
+
+function renderResult(r) {
+  document.getElementById('loadingResult').style.display = 'none';
+  const content = document.getElementById('resultContent');
+  content.style.display = 'block';
+
+  const gapsHtml = (r.gaps || []).map(g => `
+    <div class="gap-item">
+      <div class="gap-severity ${g.severity}"></div>
+      <div class="gap-text">
+        <strong>${g.text}</strong>
+        <small>${g.reason}</small>
+      </div>
+    </div>`).join('');
+
+  const routeHtml = (r.route || []).map((step, i) => `
+    <div class="route-step">
+      <div class="route-num">${i + 1}</div>
+      <div class="route-text"><strong>${step.step}</strong><br>${step.why}</div>
+    </div>`).join('');
+
+  content.innerHTML = `
+    <div class="result-header">
+      <div class="result-label">◈ Маршрут готов</div>
+      <div class="result-title">Ваш продукт</div>
+      <div class="result-type">${r.productType || 'Образовательная система'}</div>
+    </div>
+
+    <div class="result-section">
+      <div class="result-section-title">Диагностика</div>
+      <div class="result-content">${r.diagnosis || ''}</div>
+    </div>
+
+    <div class="result-section">
+      <div class="result-section-title">Пробелы системы</div>
+      <div style="margin-top: -8px">
+        <div style="display:flex; gap:16px; font-size:11px; color:var(--text-dim); margin-bottom:14px; letter-spacing:1px">
+          <span>● Критично</span>
+          <span style="color: var(--warning)">● Средне</span>
+          <span style="color: var(--success)">● Низко</span>
+        </div>
+        ${gapsHtml}
+      </div>
+    </div>
+
+    <div class="result-section">
+      <div class="result-section-title">Маршрут действий</div>
+      ${routeHtml}
+    </div>
+
+    <div class="insight visible" style="margin-top: 40px; margin-bottom: 0">
+      <div class="insight-label">◈ Ключевой вывод</div>
+      <div class="insight-text">${r.keyInsight || ''}</div>
+    </div>
+
+    <div style="margin-top: 40px; display: flex; gap: 12px;">
+      <button class="btn btn-secondary" onclick="restart()">↺ Начать заново</button>
+    </div>`;
+}
+
+function renderFallback() {
+  document.getElementById('loadingResult').style.display = 'none';
+  const content = document.getElementById('resultContent');
+  content.style.display = 'block';
+  content.innerHTML = `
+    <div class="result-header">
+      <div class="result-label">◈ Анализ завершён</div>
+      <div class="result-title">Данные собраны</div>
+    </div>
+    <div class="insight visible">
+      <div class="insight-label">◈ Статус</div>
+      <div class="insight-text">Не удалось получить анализ. Проверьте подключение и попробуйте снова.</div>
+    </div>
+    <div style="margin-top: 32px">
+      <button class="btn btn-secondary" onclick="restart()">↺ Начать заново</button>
+    </div>`;
+}
+
+function restart() {
+  current = 0;
+  answers = {};
+  insightShown = {};
+  document.getElementById('result').classList.remove('visible');
+  document.getElementById('loadingResult').style.display = 'block';
+  document.getElementById('resultContent').style.display = 'none';
+
+  // Reset all options
+  document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  document.querySelectorAll('.insight').forEach(i => i.classList.remove('visible'));
+  document.querySelectorAll('.custom-input').forEach(t => t.value = '');
+  document.querySelectorAll('.loading-indicator').forEach(l => l.classList.remove('visible'));
+  document.querySelectorAll('.btn-primary').forEach(b => b.disabled = true);
+
+  showBlock(0);
+}
+
+init();
+</script>
+</body>
+</html>
